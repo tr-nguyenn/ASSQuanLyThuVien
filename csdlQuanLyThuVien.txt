@@ -1,0 +1,102 @@
+-- Tạo CSDL
+CREATE DATABASE QuanLyThuVien;
+GO
+USE QuanLyThuVien;
+
+-- Tạo bảng Thể loại
+CREATE TABLE TheLoai (
+    MaTheLoai INT IDENTITY(1,1) PRIMARY KEY,
+    TenTheLoai NVARCHAR(100) NOT NULL
+);
+
+-- Tạo bảng Sách
+CREATE TABLE Sach (
+    MaSach INT IDENTITY(1,1) PRIMARY KEY,
+    TenSach NVARCHAR(255) NOT NULL,
+    TacGia NVARCHAR(255) NOT NULL,
+    MaTheLoai INT NOT NULL,
+    NXB NVARCHAR(255) NOT NULL,
+    NamXuatBan INT CHECK (NamXuatBan >= 1800 AND NamXuatBan <= YEAR(GETDATE())),
+    FOREIGN KEY (MaTheLoai) REFERENCES TheLoai(MaTheLoai)
+);
+
+-- Tạo bảng Tài khoản
+CREATE TABLE TaiKhoan (
+    MaNhanVien INT IDENTITY(1,1) PRIMARY KEY,
+    HoTen NVARCHAR(100) NOT NULL,
+    NgaySinh DATE NOT NULL,
+    SoDienThoai NVARCHAR(15) NOT NULL,
+    VaiTro NVARCHAR(50) CHECK (VaiTro IN ('Admin', 'ThuThu')) NOT NULL,
+    TaiKhoan NVARCHAR(50) UNIQUE NOT NULL,
+    MatKhau NVARCHAR(50) NOT NULL
+);
+
+-- Tạo bảng Độc giả
+CREATE TABLE DocGia (
+    MaDocGia INT IDENTITY(1,1) PRIMARY KEY,
+    TenDocGia NVARCHAR(100) NOT NULL,
+    SoDienThoai NVARCHAR(15) NOT NULL UNIQUE
+);
+
+-- Tạo bảng Phiếu mượn
+CREATE TABLE PhieuMuon (
+    MaPhieu INT IDENTITY(1,1) PRIMARY KEY,
+    MaNhanVien INT NOT NULL,
+    MaDocGia INT NOT NULL,
+    NgayMuon DATE DEFAULT GETDATE(),
+    NgayHetHan DATE NOT NULL,
+    TrangThaiTra NVARCHAR(20) ,
+    NgayTra DATE NULL,
+    GhiChu NVARCHAR(255),
+    FOREIGN KEY (MaNhanVien) REFERENCES TaiKhoan(MaNhanVien),
+    FOREIGN KEY (MaDocGia) REFERENCES DocGia(MaDocGia)
+);
+
+-- Tạo bảng Chi tiết phiếu mượn
+CREATE TABLE ChiTietPhieuMuon (
+    MaPhieu INT NOT NULL,
+    MaSach INT NOT NULL,
+    SoLuong INT CHECK (SoLuong > 0) NOT NULL,
+    PRIMARY KEY (MaPhieu, MaSach),
+    FOREIGN KEY (MaPhieu) REFERENCES PhieuMuon(MaPhieu),
+    FOREIGN KEY (MaSach) REFERENCES Sach(MaSach)
+);
+
+-- Chèn dữ liệu mẫu
+
+-- Thêm thể loại
+INSERT INTO TheLoai (TenTheLoai) VALUES
+(N'Khoa học'),
+(N'Văn học'),
+(N'Lịch sử'),
+(N'Tiểu thuyết'),
+(N'Kinh tế');
+
+-- Thêm sách
+INSERT INTO Sach (TenSach, TacGia, MaTheLoai, NXB, NamXuatBan) VALUES
+(N'Vật lý đại cương', N'Nguyễn Văn A', 1, N'NXB Giáo Dục', 2020),
+(N'Chiến tranh và hòa bình', N'Lev Tolstoy', 4, N'NXB Văn Học', 1869),
+(N'Lịch sử Việt Nam', N'Trần Quốc Vượng', 3, N'NXB Khoa Học', 2018),
+(N'Kinh tế học cơ bản', N'Paul Samuelson', 5, N'NXB Kinh Tế', 2015);
+
+-- Thêm tài khoản
+INSERT INTO TaiKhoan (HoTen, NgaySinh, SoDienThoai, VaiTro, TaiKhoan, MatKhau) VALUES
+(N'Nguyễn Văn A', '1990-05-10', '0901234567', 'Admin', 'admin', '123456'),
+(N'Trần Thị B', '1995-08-20', '0912345678', 'ThuThu', 'thuthu', 'abcdef');
+
+-- Thêm độc giả
+INSERT INTO DocGia (TenDocGia, SoDienThoai) VALUES
+(N'Hoàng Văn C', '0923456789'),
+(N'Phạm Thị D', '0934567890');
+
+-- Thêm phiếu mượn
+INSERT INTO PhieuMuon (MaNhanVien, MaDocGia, NgayHetHan, TrangThaiTra) VALUES
+(2, 1, '2025-04-01', N'Chưa trả'),
+(2, 2, '2025-04-05', N'Đã trả');
+
+-- Thêm chi tiết phiếu mượn
+INSERT INTO ChiTietPhieuMuon (MaPhieu, MaSach, SoLuong) VALUES
+(1, 1, 1),
+(1, 3, 1),
+(2, 2, 1);
+
